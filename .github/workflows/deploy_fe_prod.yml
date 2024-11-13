@@ -7,8 +7,8 @@ on:
 env:
   FRONTEND_URL: https://lively-meadow-0abbd281e-preview.westus2.5.azurestaticapps.net/                  # set this to the frontend URL (for QR code generation)
   STATIC_APP_NAME: bendevfe                             # set this to the name of the frontend app on Azure Static Web Apps
-  NODE_VERSION: '18'                                    # set this to the node version to use (e.g. '8.x', '10.x', '12.x')
-  APP_ENVIRONMENT: preview
+  NODE_VERSION: 18
+  APP_ENVIRONMENT: preview                              # set this to 'production' for production deployment or 'preview' for staging deployment.
 
 jobs:
   deploy:
