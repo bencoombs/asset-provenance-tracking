@@ -4,10 +4,6 @@ name: Deploy frontend to production
 on:
   workflow_dispatch:
     inputs:
-      APP_VERSION:
-        description: "App version, eg. 'v0.1.2'"
-        required: true
-        default: 'v0.0.0'
       FRONTEND_URL:
         description: 'Frontend URL (for QR code generation)'
         required: true
@@ -42,7 +38,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
       - name: Checkout
         uses: actions/checkout@v4.1.7
+        with:
+          fetch-depth: '0'
       - name: Bump version and push tag
+        id: bump_version
         uses: anothrNick/github-tag-action@v1 # Don't use @master or @v1 unless you're happy to test the latest version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # if you don't want to set write permissions use a PAT token
@@ -61,5 +60,5 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4.3.3
         with:
-          name: ${{ env.STATIC_APP_NAME }}-${{ env.APP_VERSION }}
+          name: ${{ env.STATIC_APP_NAME }}-${{ steps.bump_version.outputs.new_tag }}
           path: packages/frontend/.output/**
