@@ -20,6 +20,15 @@ on:
           - 'preview'
           - 'production'
         default: 'preview'
+      BUMP_VERSION:
+        type: choice
+        description: "Bump version, eg. 'major', 'minor', or 'patch'"
+        required: true
+        options:
+          - 'major'
+          - 'minor'
+          - 'patch'
+        default: 'patch'
 
 env:
   FRONTEND_URL: ${{ github.event.inputs.FRONTEND_URL }}       # set this to the frontend URL (for QR code generation)
@@ -45,7 +54,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # if you don't want to set write permissions use a PAT token
           WITH_V: true
-          DEFAULT_BUMP: patch
+          DEFAULT_BUMP: ${{ github.event.inputs.BUMP_VERSION }}
       - name: build frontend
         working-directory: packages/frontend
         run: |
