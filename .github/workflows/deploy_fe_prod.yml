@@ -22,10 +22,10 @@ on:
         default: 'preview'
 
 env:
-  FRONTEND_URL: ${{ github.event.inputs.FRONTEND_URL }}                  # set this to the frontend URL (for QR code generation)
-  STATIC_APP_NAME: ${{ github.event.inputs.APP_NAME }}                             # set this to the name of the frontend app on Azure Static Web Apps
-  NODE_VERSION: 20
-  APP_ENVIRONMENT: ${{ github.event.inputs.APP_ENVIRONMENT }}                                 # set this to 'production' for production deployment or 'preview' for staging deployment.
+  FRONTEND_URL: ${{ github.event.inputs.FRONTEND_URL }}       # set this to the frontend URL (for QR code generation)
+  STATIC_APP_NAME: ${{ github.event.inputs.APP_NAME }}        # set this to the name of the frontend app on Azure Static Web Apps
+  NODE_VERSION: 18
+  APP_ENVIRONMENT: ${{ github.event.inputs.APP_ENVIRONMENT }} # set this to 'production' for production deployment or 'preview' for staging deployment.
 
 jobs:
   deploy:
@@ -45,7 +45,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # if you don't want to set write permissions use a PAT token
           WITH_V: true
-          # PRERELEASE: true
+          DEFAULT_BUMP: patch
       - name: build frontend
         working-directory: packages/frontend
         run: |
