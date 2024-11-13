@@ -28,7 +28,7 @@ on:
 env:
   FRONTEND_URL: ${{ github.event.inputs.FRONTEND_URL }}                  # set this to the frontend URL (for QR code generation)
   STATIC_APP_NAME: ${{ github.event.inputs.APP_NAME }}                             # set this to the name of the frontend app on Azure Static Web Apps
-  NODE_VERSION: 18
+  NODE_VERSION: 20
   APP_ENVIRONMENT: ${{ github.event.inputs.APP_ENVIRONMENT }}                                 # set this to 'production' for production deployment or 'preview' for staging deployment.
   APP_VERSION: ${{ github.event.inputs.APP_VERSION }}                                 # set this to the version of the app being deployed
 
