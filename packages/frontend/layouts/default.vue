@@ -82,10 +82,11 @@
                 
                 <div class="row custom-copy-right">
                     <div class="mt-10">
-                    <p class="text-muted">© 2024 Global Open Source Quality Assurance System   |   Please review our <a href="">Terms and Conditions</a>.</p>
-                    <p class="text-muted">The purple hand logo and the GOSQAS are marks of the Global Open Source Quality Assurance System, all rights reserved. However, our software is open source software. </p> 
-                   </div>
-            </div>
+                        <p class="text-muted">© 2024 Global Open Source Quality Assurance System   |   Please review our <a href="">Terms and Conditions</a>.</p>
+                        <p class="text-muted">The purple hand logo and the GOSQAS are marks of the Global Open Source Quality Assurance System, all rights reserved. However, our software is open source software. </p> 
+                    </div>
+                </div>   
+                <div class="app-version">{{ app_version }}</div>
             </div>
         </footer>
 
@@ -99,6 +100,11 @@
 let showTrack = false;
 
 export default {
+    computed: {
+        app_version() {
+            return process.env["APP_VERSION"];
+        },
+    },
     methods: {
         // Function to have the 'View Record' input field appear
         async trackingForm() {
@@ -199,6 +205,11 @@ export default {
         #close-icon {
             display: none;
         }
+    }
+
+    .app-version {
+        color: lightgrey;
+        font-size: 0.5em;
     }
 
     /* For screens less than 992px*/

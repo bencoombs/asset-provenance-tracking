@@ -63,6 +63,8 @@ jobs:
       - name: Deploy frontend
         if: github.ref == 'refs/heads/main'
         working-directory: ./packages/frontend
+        env:
+          APP_VERSION: ${{ steps.bump_version.outputs.new_tag }}
         run: |
           npx @azure/static-web-apps-cli deploy .output/public/ --api-location .output/server/ --app-name=${{ env.STATIC_APP_NAME }} --env ${{ env.APP_ENVIRONMENT }} --api-language=node --api-version=${{ env.NODE_VERSION }} --deployment-token  ${{ secrets.AZURE_SWA_DEPLOYMENT_TOKEN }}
       - name: Upload build artifact
