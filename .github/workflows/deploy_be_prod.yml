@@ -7,7 +7,7 @@ on:
       BACKEND_URL:
         description: 'Backend URL'
         required: true
-        default: ''
+        default: 'https://www.bendevbe.azurewebsites.net/api'
       FUNCTION_APP_NAME:
         description: 'Azure Function App name'
         required: true
@@ -62,7 +62,7 @@ jobs:
         APP_VERSION: ${{ steps.bump_version.outputs.new_tag }}
       run: |
         pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-        npm install
+        npm install --omit=dev
         npm run build --if-present
         popd
 
@@ -73,3 +73,4 @@ jobs:
         app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
         package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
         publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+    
