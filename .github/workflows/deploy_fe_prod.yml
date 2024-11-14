@@ -58,7 +58,7 @@ jobs:
       - name: build frontend
         working-directory: packages/frontend
         env:
-          APP_VERSION: "Hello1"
+          APP_VERSION: ${{ steps.bump_version.outputs.new_tag }}
         run: |
           npm ci
           npx nuxi build --preset=azure

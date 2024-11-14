@@ -30,6 +30,7 @@ export default defineNuxtConfig({
             baseUrl: process.env.BACKEND_URL ? process.env.BACKEND_URL : globalBaseUrl,
             apiBase: '/api',
             frontendUrl: process.env.FRONTEND_URL ? process.env.FRONTEND_URL : 'http://localhost:3000',
+            app_version: process.env.APP_VERSION ? process.env.APP_VERSION : 'Hello',
         }
     },
     modules: ['@nuxt/test-utils/module'],

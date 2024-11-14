@@ -102,7 +102,7 @@ let showTrack = false;
 export default {
     computed: {
         app_version() {
-            return process.env["APP_VERSION"];
+            return useRuntimeConfig().public.app_version;
         },
     },
     methods: {
