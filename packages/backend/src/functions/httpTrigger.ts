@@ -369,6 +369,16 @@ async function getStatistics(request: HttpRequest, context: InvocationContext): 
     };
 };
 
+async function getVersion(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+    const contentType = "application/json";
+    const version = process.env["APP_VERSION"] ?? "Hello";
+    return {
+        jsonBody: { version: version},
+        headers: { "Content-Type": contentType }
+    };
+}
+
+
 app.get("getProvenance", {
     authLevel: 'anonymous',
     route: 'provenance/{deviceKey}',
@@ -403,4 +413,10 @@ app.get("getStatistics", {
     authLevel: 'anonymous',
     route: 'statistics',
     handler: getStatistics
+})
+
+app.get("getVersion", {
+    authLevel: 'anonymous',
+    route: 'version',
+    handler: getVersion
 })

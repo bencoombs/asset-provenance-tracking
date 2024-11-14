@@ -3,6 +3,33 @@ name: Deploy backend to production
 # Manual deployment trigger
 on:
   workflow_dispatch:
+    inputs:
+      BACKEND_URL:
+        description: 'Backend URL'
+        required: true
+        default: ''
+      FUNCTION_APP_NAME:
+        description: 'Azure Function App name'
+        required: true
+        default: 'bendevbe'
+      APP_ENVIRONMENT:
+        type: choice
+        description: "Deployment environment, eg. 'preview' or 'production'"
+        required: true
+        options:
+          - 'preview'
+          - 'production'
+        default: 'preview'
+      BUMP_VERSION:
+        type: choice
+        description: "Bump version, eg. 'major', 'minor', or 'patch'"
+        required: true
+        options:
+          - 'major'
+          - 'minor'
+          - 'patch'
+        default: 'patch'
+
 
 env:
   AZURE_FUNCTIONAPP_NAME: 'bendevbe'                    # set this to your function app name on Azure
@@ -21,8 +48,18 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
 
-    - name: 'Resolve Project Dependencies Using Npm'
+    - name: Bump version and push tag
+      id: bump_version
+      uses: anothrNick/github-tag-action@v1 # Don't use @master or @v1 unless you're happy to test the latest version
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # if you don't want to set write permissions use a PAT token
+        WITH_V: true
+        DEFAULT_BUMP: ${{ github.event.inputs.BUMP_VERSION }}
+
+    - name: 'Build node.js project'
       shell: bash
+      env:
+        APP_VERSION: ${{ steps.bump_version.outputs.new_tag }}
       run: |
         pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
         npm install
