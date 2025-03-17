@@ -1,15 +1,12 @@
 name: Deploy Frontend from Release
 
-# Triggered when a release is published
+# Triggered when a release is published or manually
 on:
   release:
     types: [published]
-  # Also allow manual trigger with a specific release tag
+  # Manual trigger
   workflow_dispatch:
-    inputs:
-      RELEASE_TAG:
-        description: "Release tag to deploy (e.g. v1.2.3)"
-        required: true
+    # No inputs - we'll list and select releases within the workflow
 
 env:
   APP_ENVIRONMENT: production
@@ -19,25 +16,51 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Get release tag
-        id: get_tag
+      - name: List available releases
+        id: list_releases
+        if: github.event_name == 'workflow_dispatch'
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "RELEASE_TAG=${{ github.event.inputs.RELEASE_TAG }}" >> $GITHUB_ENV
-          else
-            echo "RELEASE_TAG=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
-          fi
+          # Get the last 10 releases and format them in a readable way
+          echo "Available releases:"
+          gh release list --limit 10 --repo ${{ github.repository }}
+          echo "---------------------------------------------"
+          echo "Please select a release tag from the list above and enter it below."
+          echo "---------------------------------------------"
+          read -p "Enter release tag to deploy (e.g. v1.2.3): " RELEASE_TAG
+          echo "RELEASE_TAG=$RELEASE_TAG" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Set release tag from event
+        if: github.event_name == 'release'
+        run: |
+          echo "RELEASE_TAG=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
           
       - name: Download release asset
         run: |
-          ASSET_URL=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ env.RELEASE_TAG }} | jq -r '.assets[] | select(.name | contains("gosqas-frontend")) | .browser_download_url')
-          echo "Downloading from: $ASSET_URL"
-          curl -L -o release.zip "$ASSET_URL"
+          echo "Downloading assets for release: ${{ env.RELEASE_TAG }}"
+          # List assets to debug
+          gh release view ${{ env.RELEASE_TAG }} --repo ${{ github.repository }} --json assets
+          
+          # Download the ZIP file
+          gh release download ${{ env.RELEASE_TAG }} --repo ${{ github.repository }} --pattern "*.zip" --dir ./
+          
+          # List downloaded files
+          ls -la *.zip
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
       - name: Extract release asset
         run: |
+          # Extract the first zip file found
+          ZIP_FILE=$(ls -1 *.zip | head -n 1)
+          echo "Extracting: $ZIP_FILE"
+          
           mkdir -p deploy
-          unzip release.zip -d deploy
+          unzip "$ZIP_FILE" -d deploy
+          
+          # List extracted content
+          echo "Extracted content:"
           ls -la deploy
           
       - name: Deploy to Azure Static Web Apps

@@ -13,7 +13,7 @@ on:
           - 'patch'
         default: 'patch'
 env:
-  NODE_VERSION: 18
+  NODE_VERSION: 20
   APP_ENVIRONMENT: production
   BACKEND_URL: https://bendevbe.azurewebsites.net/api
   FRONTEND_URL: https://gosqas.org
