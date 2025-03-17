@@ -1,0 +1,67 @@
+name: Build and Release Frontend
+# Manual trigger for building and creating a release
+on:
+  workflow_dispatch:
+    inputs:
+      BUMP_VERSION:
+        type: choice
+        description: "Bump version, eg. 'major', 'minor', or 'patch'"
+        required: true
+        options:
+          - 'major'
+          - 'minor'
+          - 'patch'
+        default: 'patch'
+env:
+  NODE_VERSION: 18
+  APP_ENVIRONMENT: production
+  BACKEND_URL: https://bendevbe.azurewebsites.net/api
+  FRONTEND_URL: https://gosqas.org
+  BUILD_ARTIFACT_NAME: 'gosqas-fe'
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4.0.2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Checkout
+        uses: actions/checkout@v4.1.7
+        with:
+          fetch-depth: '0'
+          
+      - name: Bump version and push tag
+        id: bump_version
+        uses: anothrNick/github-tag-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+          DEFAULT_BUMP: ${{ github.event.inputs.BUMP_VERSION }}
+          
+      - name: Build frontend
+        working-directory: packages/frontend
+        env:
+          APP_VERSION: ${{ steps.bump_version.outputs.new_tag }}
+        run: |
+          npm ci
+          npx nuxi build --preset=azure
+          
+      - name: Package build output
+        working-directory: packages/frontend
+        run: |
+          cd .output
+          zip -r ../../gosqas-frontend-${{ steps.bump_version.outputs.new_tag }}.zip .
+          
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: gosqas-frontend-${{ steps.bump_version.outputs.new_tag }}.zip
+          tag_name: ${{ steps.bump_version.outputs.new_tag }}
+          name: Release ${{ steps.bump_version.outputs.new_tag }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
