@@ -1,84 +1,33 @@
-name: Deploy Frontend from Release
+name: Deploy to Azure SWA
 
-# Triggered when a release is published or manually
 on:
-  release:
-    types: [published]
-  # Manual trigger
   workflow_dispatch:
-    # No inputs - we'll list and select releases within the workflow
-
-env:
-  APP_ENVIRONMENT: production
-  STATIC_WEB_APP_NAME: gosqas
+    inputs:
+      release_tag:
+        description: 'Release tag to deploy'
+        required: true
+        type: string
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: List available releases
-        id: list_releases
-        if: github.event_name == 'workflow_dispatch'
+      - name: Download release
         run: |
-          # Get the last 10 releases and format them in a readable way
-          echo "Available releases:"
-          gh release list --limit 10 --repo ${{ github.repository }}
-          echo "---------------------------------------------"
-          echo "Please select a release tag from the list above and enter it below."
-          echo "---------------------------------------------"
-          read -p "Enter release tag to deploy (e.g. v1.2.3): " RELEASE_TAG
-          echo "RELEASE_TAG=$RELEASE_TAG" >> $GITHUB_ENV
+          # Download the release asset using GitHub CLI
+          gh release download ${{ github.event.inputs.release_tag }} --repo ${{ github.repository }} --dir ./
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
-      - name: Set release tag from event
-        if: github.event_name == 'release'
+      - name: Unzip release
         run: |
-          echo "RELEASE_TAG=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
-          
-      - name: Download release asset
-        run: |
-          echo "Downloading assets for release: ${{ env.RELEASE_TAG }}"
-          # List assets to debug
-          gh release view ${{ env.RELEASE_TAG }} --repo ${{ github.repository }} --json assets
-          
-          # Download the ZIP file
-          gh release download ${{ env.RELEASE_TAG }} --repo ${{ github.repository }} --pattern "*.zip" --dir ./
-          
-          # List downloaded files
-          ls -la *.zip
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: Extract release asset
-        run: |
-          # Extract the first zip file found
-          ZIP_FILE=$(ls -1 *.zip | head -n 1)
-          echo "Extracting: $ZIP_FILE"
-          
-          mkdir -p deploy
-          unzip "$ZIP_FILE" -d deploy
-          
-          # List extracted content
-          echo "Extracted content:"
-          ls -la deploy
+          # Unzip the release asset
+          unzip *.zip
           
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
-          app_location: "deploy/public"
-          api_location: "deploy/server"
-          app_name: ${{ env.STATIC_WEB_APP_NAME }}
-          api_language: "node"
-          api_version: "20"
+          app_location: "./public"
+          api_location: "./server"
           skip_app_build: true
-          output_location: ""
-          environment_name: "production"
-      
-      - name: Post deployment notification
-        if: success()
-        run: |
-          echo "✅ Frontend version ${{ env.RELEASE_TAG }} successfully deployed to production"
